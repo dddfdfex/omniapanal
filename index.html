@@ -2,255 +2,340 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Brothers Studio — قارئ الحضور</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brothers Studio — لوحة المعلم</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.18.6/index.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
-  --bg:#03080e;--bg2:#060d16;
-  --surface:rgba(255,255,255,0.04);--surface2:rgba(255,255,255,0.07);
-  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
-  --blue:#3b82f6;--blue2:#60a5fa;
-  --green:#10b981;--green2:#34d399;
-  --red:#ef4444;--red2:#f87171;
-  --gold:#f59e0b;--gold2:#fbbf24;
-  --text:#eef4ff;--muted:#64748b;--muted2:#94a3b8;
-  --radius:16px;--radius-sm:12px;
+  --bg:#03080f;--bg2:#060d18;
+  --surface:rgba(255,255,255,0.03);--surface2:rgba(255,255,255,0.055);
+  --border:rgba(255,255,255,0.065);--border2:rgba(255,255,255,0.12);
+  --teal:#0d9488;--teal2:#14b8a6;--teal3:#2dd4bf;
+  --blue:#3b82f6;--green:#10b981;--green2:#34d399;
+  --yellow:#f59e0b;--red:#ef4444;--red2:#f87171;
+  --text:#eef4ff;--muted:#64748b;--muted2:#94a3b8;--muted3:#b8c5d6;
+  --sidebar:260px;--radius:16px;--radius-sm:10px;--radius-lg:22px;
 }
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif;-webkit-tap-highlight-color:transparent;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif;}
 body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 
-/* ====== LOGIN ====== */
 #login-view{
-  display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;
-  background:radial-gradient(ellipse 70% 60% at 50% 30%,rgba(59,130,246,0.12) 0%,transparent 70%),var(--bg);
+  display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background:radial-gradient(ellipse 60% 60% at 30% 40%,rgba(13,148,136,0.12) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 50% at 75% 70%,rgba(59,130,246,0.07) 0%,transparent 60%),var(--bg);
 }
 .login-card{
-  background:var(--surface2);border:1px solid var(--border2);border-radius:24px;
-  padding:40px 28px;max-width:380px;width:100%;text-align:center;
-  box-shadow:0 40px 80px rgba(0,0,0,0.7);
+  background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-lg);
+  padding:50px 44px;max-width:420px;width:95%;text-align:center;backdrop-filter:blur(30px);
+  box-shadow:0 60px 120px rgba(0,0,0,0.7);
 }
-.login-logo-wrap{margin-bottom:24px;}
-.login-logo-wrap img{width:72px;height:72px;border-radius:18px;object-fit:cover;box-shadow:0 10px 28px rgba(59,130,246,0.4);}
-.login-logo-icon{width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto;box-shadow:0 10px 28px rgba(59,130,246,0.4);}
-.login-card h1{font-size:22px;font-weight:900;background:linear-gradient(135deg,#fff,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;}
-.role-badge{display:inline-block;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);color:#93c5fd;padding:5px 16px;border-radius:20px;font-size:11px;font-weight:700;margin:12px 0 24px;letter-spacing:.5px;}
-.f-ctrl{width:100%;padding:14px 16px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Cairo',sans-serif;font-size:15px;outline:none;transition:all .25s;text-align:center;letter-spacing:6px;font-weight:900;font-size:22px;}
-.f-ctrl:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,0.2);}
-.f-ctrl-n{letter-spacing:0;font-size:18px;font-weight:800;}
-.form-group{margin-bottom:14px;text-align:right;}
-.form-group label{font-size:12px;font-weight:700;color:var(--muted2);display:block;margin-bottom:6px;}
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px 22px;border:none;border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;width:100%;margin-top:10px;}
-.btn-primary{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(59,130,246,0.4);}
-.btn-success{background:linear-gradient(135deg,#10b981,#059669);color:#fff;}
-.btn-warning{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;}
-.btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;}
+.login-logo-wrap{margin-bottom:28px;}
+.login-logo-wrap img{width:80px;height:80px;border-radius:20px;object-fit:cover;box-shadow:0 12px 32px rgba(13,148,136,0.4);}
+.login-logo-icon{width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,#0d9488,#0f766e);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto;box-shadow:0 12px 32px rgba(13,148,136,0.4);}
+.login-card h1{font-size:26px;font-weight:900;background:linear-gradient(135deg,#fff,#5eead4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;}
+.role-badge{display:inline-block;background:rgba(13,148,136,0.15);border:1px solid rgba(13,148,136,0.3);color:#5eead4;padding:5px 16px;border-radius:20px;font-size:11px;font-weight:700;margin:12px 0 24px;letter-spacing:.5px;}
+.f-ctrl{width:100%;padding:13px 16px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Cairo',sans-serif;font-size:15px;outline:none;transition:all .25s;text-align:center;letter-spacing:8px;font-weight:900;font-size:22px;}
+.f-ctrl:focus{border-color:var(--teal2);box-shadow:0 0 0 3px rgba(13,148,136,0.2);}
+.f-ctrl-n{letter-spacing:0;font-size:13px;font-weight:400;text-align:right;padding:10px 14px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border:none;border-radius:var(--radius-sm);font-family:'Cairo',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .25s;width:100%;margin-top:12px;}
+.btn-teacher{background:linear-gradient(135deg,#0d9488,#0f766e);color:#fff;}
+.btn-teacher:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(13,148,136,0.45);}
+.btn-sm{padding:8px 16px;font-size:12px;width:auto;border-radius:8px;margin-top:0;}
 .btn-ghost{background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);}
-.btn-ghost:hover{color:var(--text);}
-.btn-icon{padding:14px;border-radius:var(--radius-sm);width:auto;font-size:18px;}
-.err-box{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:10px;padding:12px;font-size:13px;margin-bottom:14px;display:none;}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2);}
+.err-box{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:10px;padding:12px;font-size:13px;margin-bottom:16px;display:none;}
 
-/* ====== APP ====== */
-#app-shell{display:none;min-height:100vh;display:none;flex-direction:column;}
+#app-shell{display:none;min-height:100vh;}
+.layout{display:flex;min-height:100vh;}
 
-/* HEADER */
-.app-header{
-  background:rgba(3,8,14,0.95);backdrop-filter:blur(16px);
-  border-bottom:1px solid var(--border);
-  padding:14px 18px;display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:100;
+.sidebar{
+  width:var(--sidebar);flex-shrink:0;
+  background:linear-gradient(180deg,#040a12 0%,#06101c 100%);
+  border-left:1px solid var(--border);
+  position:fixed;top:0;right:0;height:100vh;
+  display:flex;flex-direction:column;z-index:100;
 }
-.app-header-brand{display:flex;align-items:center;gap:10px;}
-.app-header-brand img{width:34px;height:34px;border-radius:8px;object-fit:cover;}
-.app-header-icon{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:15px;}
-.app-header-title{font-size:15px;font-weight:900;line-height:1.1;}
-.app-header-sub{font-size:10px;color:var(--blue2);}
-.user-chip{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);padding:6px 12px;border-radius:20px;}
-.user-chip span{font-size:12px;font-weight:700;}
-.user-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sb-logo{padding:20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.sb-logo img{width:40px;height:40px;border-radius:10px;object-fit:cover;}
+.sb-logo-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#0d9488,#0f766e);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.sb-logo-text{font-size:15px;font-weight:900;line-height:1.1;}
+.sb-logo-sub{font-size:9px;color:var(--teal3);font-weight:700;letter-spacing:1.5px;}
+.sb-user{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#0d9488,#0f766e);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;border:2px solid rgba(13,148,136,0.4);}
+.sb-uname{font-size:13px;font-weight:800;}
+.sb-urole{font-size:10px;color:var(--teal3);font-weight:700;letter-spacing:.3px;}
+.sb-nav{flex:1;padding:12px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;}
+.nav-section{font-size:9px;font-weight:800;color:var(--muted);letter-spacing:1.5px;padding:8px 14px 4px;}
+.nav-item{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:12px;cursor:pointer;color:var(--muted2);font-size:13px;font-weight:700;transition:all .2s;border:1px solid transparent;}
+.nav-item:hover{color:var(--text);background:var(--surface2);}
+.nav-item.active{color:#fff;background:linear-gradient(135deg,rgba(13,148,136,0.25),rgba(15,118,110,0.15));border-color:rgba(13,148,136,0.3);}
+.nav-item.active i{color:var(--teal3);}
+.nav-item i{width:18px;text-align:center;font-size:14px;flex-shrink:0;}
+.nav-divider{height:1px;background:var(--border);margin:6px 0;}
+.nav-logout{color:var(--red)!important;}
+.nav-logout:hover{background:rgba(239,68,68,0.1)!important;border-color:rgba(239,68,68,0.2)!important;}
 
-/* CONTENT */
-.app-content{flex:1;padding:18px;display:flex;flex-direction:column;gap:16px;max-width:500px;margin:0 auto;width:100%;}
+.main{flex:1;margin-right:var(--sidebar);display:flex;flex-direction:column;min-height:100vh;}
+.topbar{position:sticky;top:0;z-index:90;background:rgba(3,8,15,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.topbar-title{font-size:18px;font-weight:900;display:flex;align-items:center;gap:10px;}
+.topbar-title i{color:var(--teal3);}
+.content{flex:1;padding:24px;display:flex;flex-direction:column;gap:20px;}
 
-/* CARDS */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);}
-.card-title{font-size:13px;font-weight:800;color:#94a3b8;margin-bottom:14px;display:flex;align-items:center;gap:8px;letter-spacing:.3px;}
-.card-title i{color:var(--blue2);}
+.view{display:none;flex-direction:column;gap:20px;animation:fadeUp .35s ease;}
+.view.active{display:flex;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-/* SCAN AREA */
-.scan-area{
-  background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(29,78,216,0.04));
-  border:2px dashed rgba(59,130,246,0.3);border-radius:var(--radius);
-  padding:28px 20px;text-align:center;
-}
-.scan-icon{font-size:48px;margin-bottom:12px;opacity:.8;}
-.scan-label{font-size:14px;font-weight:700;color:var(--muted2);margin-bottom:4px;}
-.scan-sub{font-size:12px;color:var(--muted);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.05),transparent);}
+.card-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:9px;margin-bottom:18px;color:var(--muted3);}
+.card-title i{color:var(--teal3);}
 
-/* RESULT CARD */
-.result-card{border-radius:var(--radius);padding:18px;display:none;animation:popIn .3s ease;}
-@keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
-.result-card.success{background:rgba(16,185,129,0.1);border:2px solid rgba(16,185,129,0.3);}
-.result-card.error{background:rgba(239,68,68,0.1);border:2px solid rgba(239,68,68,0.3);}
-.result-card.already{background:rgba(245,158,11,0.1);border:2px solid rgba(245,158,11,0.3);}
-.result-icon{font-size:36px;margin-bottom:8px;}
-.result-title{font-size:16px;font-weight:900;margin-bottom:4px;}
-.result-subtitle{font-size:13px;color:var(--muted2);}
-.student-info-row{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);}
-.student-info-label{font-size:11px;color:var(--muted2);font-weight:600;}
-.student-info-val{font-size:14px;font-weight:800;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;text-align:center;transition:all .3s;position:relative;overflow:hidden;}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
+.stat-card.teal::after{background:linear-gradient(90deg,var(--teal),var(--teal3));}
+.stat-card.green::after{background:linear-gradient(90deg,var(--green),var(--green2));}
+.stat-card.yellow::after{background:linear-gradient(90deg,var(--yellow),#fbbf24);}
+.stat-card.red::after{background:linear-gradient(90deg,var(--red),var(--red2));}
+.stat-card:hover{transform:translateY(-3px);border-color:var(--border2);}
+.stat-icon{font-size:22px;margin-bottom:10px;}
+.stat-val{font-size:32px;font-weight:900;}
+.stat-card.teal .stat-val{color:var(--teal3);}
+.stat-card.green .stat-val{color:var(--green2);}
+.stat-card.yellow .stat-val{color:#fbbf24;}
+.stat-card.red .stat-val{color:var(--red2);}
+.stat-label{font-size:11px;color:var(--muted2);margin-top:4px;font-weight:600;}
 
-/* CAMERA */
-.camera-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:200;
-  display:none;flex-direction:column;align-items:center;justify-content:center;
-}
-.camera-overlay.open{display:flex;}
-.camera-frame{width:min(90vw,400px);aspect-ratio:1;border-radius:var(--radius);overflow:hidden;position:relative;border:3px solid var(--blue2);}
-.camera-frame video{width:100%;height:100%;object-fit:cover;}
-.camera-corners::before,.camera-corners::after{content:'';position:absolute;width:30px;height:30px;border-color:var(--blue2);border-style:solid;}
-.cam-status{margin-top:16px;font-size:14px;color:var(--muted2);font-weight:600;text-align:center;padding:0 20px;}
-.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--blue),transparent);animation:scanMove 2s linear infinite;top:0;}
-@keyframes scanMove{0%{top:0}100%{top:100%}}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
 
-/* LOG */
-.log-list{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;}
-.log-item{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.2);border-radius:10px;font-size:12px;}
-.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.log-dot.success{background:var(--green);}
-.log-dot.err{background:var(--red);}
-.log-dot.already{background:var(--gold);}
-.log-info{flex:1;}
-.log-name{font-weight:700;}
-.log-time{font-size:10px;color:var(--muted);}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th,td{padding:11px 14px;text-align:right;font-size:12.5px;}
+th{color:var(--muted2);font-weight:700;border-bottom:1px solid var(--border);font-size:11px;letter-spacing:.3px;white-space:nowrap;}
+td{border-bottom:1px solid rgba(255,255,255,0.025);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.018);}
 
-/* BADGE */
-.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
-.badge-blue{background:rgba(59,130,246,0.15);color:#93c5fd;border:1px solid rgba(59,130,246,0.25);}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.badge-teal{background:rgba(13,148,136,0.15);color:#5eead4;border:1px solid rgba(13,148,136,0.25);}
 .badge-green{background:rgba(16,185,129,0.15);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25);}
+.badge-red{background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25);}
+.badge-blue{background:rgba(59,130,246,0.15);color:#93c5fd;border:1px solid rgba(59,130,246,0.25);}
+.badge-yellow{background:rgba(245,158,11,0.15);color:#fde68a;border:1px solid rgba(245,158,11,0.25);}
+.badge-gray{background:rgba(100,116,139,0.12);color:var(--muted2);border:1px solid var(--border);}
 
-/* BOTTOM TAB */
-.bottom-tab{
-  position:fixed;bottom:0;left:0;right:0;
-  background:rgba(3,8,14,0.97);backdrop-filter:blur(16px);border-top:1px solid var(--border);
-  display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom));
-}
-.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px;cursor:pointer;color:var(--muted);font-size:11px;font-weight:700;transition:all .2s;}
-.tab-item.active{color:var(--blue2);}
-.tab-item i{font-size:20px;}
+.assist-card{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:16px;transition:all .2s;}
+.assist-card:hover{border-color:rgba(13,148,136,0.3);}
+.prog-bar{height:5px;border-radius:99px;background:rgba(255,255,255,0.05);overflow:hidden;margin-top:6px;}
+.prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#0d9488,#3b82f6);}
 
-.app-content{padding-bottom:80px;}
+.mini-bar-wrap{display:flex;align-items:flex-end;gap:5px;height:60px;}
+.mini-bar{flex:1;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#0d9488,#0f766e);min-height:4px;transition:height .5s;}
 
+.filter-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+.ftab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);color:var(--muted2);background:transparent;font-family:'Cairo',sans-serif;transition:all .2s;}
+.ftab.active{background:linear-gradient(135deg,#0d9488,#0f766e);border-color:transparent;color:#fff;}
+
+.wa-btn{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;padding:5px 11px;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;transition:all .2s;}
+.wa-btn:hover{transform:scale(1.05);}
+
+.footer{text-align:center;padding:14px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px;}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(100%);transition:transform .3s;}
+  .main{margin-right:0;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .grid-2,.grid-3{grid-template-columns:1fr;}
+  .topbar{padding:12px 16px;}
+  .content{padding:14px;}
+}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-view">
   <div class="login-card">
     <div class="login-logo-wrap">
       <img src="logo.png" onerror="this.style.display='none';document.getElementById('ll-icon').style.display='flex'">
-      <div class="login-logo-icon" id="ll-icon" style="display:none">📡</div>
+      <div class="login-logo-icon" id="ll-icon" style="display:none">📊</div>
     </div>
     <h1>Brothers Studio</h1>
-    <div class="role-badge">📡 &nbsp;قارئ الحضور</div>
-    <p style="color:var(--muted2);font-size:13px;margin-bottom:24px">سجّل دخولك بكودك الخاص</p>
+    <div class="role-badge">📊 &nbsp;لوحة المعلم</div>
+    <p style="color:var(--muted2);font-size:13px;margin-bottom:24px">أدخل كلمة المرور للدخول</p>
     <div id="login-error" class="err-box"></div>
-    <div class="form-group" style="text-align:right">
-      <label>كودك السري</label>
-      <input type="password" id="login-pass" class="f-ctrl f-ctrl-n" placeholder="••••" maxlength="12" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
-    <button class="btn btn-primary" onclick="doLogin()"><i class="fa-solid fa-right-to-bracket"></i> دخول</button>
+    <input type="password" id="login-pass" class="f-ctrl" placeholder="••••••" maxlength="12" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn btn-teacher" onclick="doLogin()"><i class="fa-solid fa-chalkboard-teacher"></i> دخول المعلم</button>
   </div>
 </div>
 
-<!-- APP -->
-<div id="app-shell" style="display:none">
+<div id="app-shell">
+<div class="layout">
 
-  <header class="app-header">
-    <div class="app-header-brand">
-      <img src="logo.png" onerror="this.style.display='none';document.getElementById('h-icon').style.display='flex'">
-      <div class="app-header-icon" id="h-icon" style="display:none">📡</div>
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <img src="logo.png" onerror="this.style.display='none';document.getElementById('sb-icon2').style.display='flex'">
+      <div class="sb-logo-icon" id="sb-icon2" style="display:none">📊</div>
       <div>
-        <div class="app-header-title">Brothers Studio</div>
-        <div class="app-header-sub">قارئ الحضور</div>
+        <div class="sb-logo-text">Brothers Studio</div>
+        <div class="sb-logo-sub">Teacher Panel</div>
       </div>
     </div>
-    <div class="user-chip">
-      <div class="user-dot"></div>
-      <span id="header-user-name">—</span>
-    </div>
-  </header>
-
-  <!-- VIEW: SCAN -->
-  <div class="app-content" id="view-scan" style="display:flex">
-    <div class="scan-area">
-      <div class="scan-icon">📷</div>
-      <div class="scan-label">مسح باركود الطالب</div>
-      <div class="scan-sub">اضغط لتشغيل الكاميرا أو أدخل الكود يدويًا</div>
-      <button class="btn btn-primary" style="max-width:260px;margin:16px auto 0" onclick="openCamera()"><i class="fa-solid fa-camera"></i> تشغيل الكاميرا</button>
-    </div>
-
-    <div class="card">
-      <div class="card-title"><i class="fa-solid fa-keyboard"></i> إدخال يدوي</div>
-      <input type="text" class="f-ctrl f-ctrl-n" id="manual-code" placeholder="0001" maxlength="10" inputmode="numeric" style="margin-bottom:10px" onkeydown="if(event.key==='Enter')manualAttend()">
-      <button class="btn btn-success" onclick="manualAttend()"><i class="fa-solid fa-check-circle"></i> تسجيل حضور</button>
-    </div>
-
-    <div class="result-card" id="result-card">
-      <div style="text-align:center">
-        <div class="result-icon" id="result-icon"></div>
-        <div class="result-title" id="result-title"></div>
-        <div class="result-subtitle" id="result-subtitle"></div>
+    <div class="sb-user">
+      <div class="sb-avatar">👨‍🏫</div>
+      <div>
+        <div class="sb-uname" id="sb-prof-name">المعلم</div>
+        <div class="sb-urole">Teacher Dashboard</div>
       </div>
-      <div id="result-details"></div>
     </div>
+    <nav class="sb-nav">
+      <div class="nav-section">الرئيسية</div>
+      <div class="nav-item active" id="nav-overview" onclick="showView('overview')"><i class="fa-solid fa-gauge"></i> نظرة عامة</div>
+      <div class="nav-section">التقارير</div>
+      <div class="nav-item" id="nav-assistants" onclick="showView('assistants')"><i class="fa-solid fa-users-gear"></i> أداء المساعدين</div>
+      <div class="nav-item" id="nav-attendance" onclick="showView('attendance')"><i class="fa-solid fa-calendar-check"></i> تقارير الحضور</div>
+      <div class="nav-item" id="nav-students" onclick="showView('students')"><i class="fa-solid fa-graduation-cap"></i> بيانات الطلاب</div>
+      <div class="nav-divider"></div>
+      <div class="nav-item nav-logout" onclick="doLogout()"><i class="fa-solid fa-power-off"></i> تسجيل الخروج</div>
+    </nav>
+  </aside>
 
-    <div class="card">
-      <div class="card-title"><i class="fa-solid fa-list-check"></i> سجل جلسة اليوم</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <span style="font-size:12px;color:var(--muted2)">عدد التسجيلات: <b id="session-count" style="color:var(--blue2)">0</b></span>
-        <span class="badge badge-blue" id="session-group-name">—</span>
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-title"><i class="fa-solid fa-gauge" id="t-icon"></i><span id="page-title">نظرة عامة</span></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:12px;color:var(--muted2)" id="live-date"></span>
+        <span class="badge badge-teal">Teacher View</span>
       </div>
-      <div class="log-list" id="session-log"></div>
+    </header>
+
+    <div class="content">
+
+      <!-- OVERVIEW -->
+      <div class="view active" id="view-overview">
+        <div class="stats-grid">
+          <div class="stat-card teal"><div class="stat-icon">👥</div><div class="stat-val" id="ov-students">0</div><div class="stat-label">إجمالي الطلاب</div></div>
+          <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-val" id="ov-present">0</div><div class="stat-label">حضور اليوم</div></div>
+          <div class="stat-card yellow"><div class="stat-icon">🧑‍💼</div><div class="stat-val" id="ov-assistants">0</div><div class="stat-label">المساعدون</div></div>
+          <div class="stat-card red"><div class="stat-icon">⚠️</div><div class="stat-val" id="ov-low">0</div><div class="stat-label">رصيد منخفض</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><i class="fa-solid fa-users-gear"></i> ملخص أداء المساعدين اليوم</div>
+            <div id="overview-assist-summary" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="fa-solid fa-chart-column"></i> حضور آخر 7 أيام</div>
+            <div id="weekly-labels" style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted2);margin-bottom:6px"></div>
+            <div class="mini-bar-wrap" id="weekly-chart"></div>
+            <div id="weekly-vals" style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted2);margin-top:4px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ASSISTANTS -->
+      <div class="view" id="view-assistants">
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-filter"></i> تصفية حسب الفترة</div>
+          <div class="filter-tabs">
+            <button class="ftab active" onclick="filterPeriod('today',this)">اليوم</button>
+            <button class="ftab" onclick="filterPeriod('week',this)">الأسبوع</button>
+            <button class="ftab" onclick="filterPeriod('month',this)">الشهر</button>
+            <button class="ftab" onclick="filterPeriod('all',this)">الكل</button>
+          </div>
+        </div>
+        <div class="grid-2" id="assistants-performance" style="display:grid;grid-template-columns:1fr 1fr;gap:16px"></div>
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-scroll"></i> سجل دخول المساعدين</div>
+          <div class="table-wrap">
+            <table><thead><tr><th>المساعد</th><th>العملية</th><th>التاريخ</th><th>الوقت</th></tr></thead>
+            <tbody id="assist-log-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ATTENDANCE -->
+      <div class="view" id="view-attendance">
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-filter"></i> فلتر التقرير</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+            <div style="flex:1;min-width:140px">
+              <label style="font-size:11px;font-weight:700;color:var(--muted2);display:block;margin-bottom:6px">المجموعة</label>
+              <select class="f-ctrl-n f-ctrl" id="att-group-filter" onchange="loadAttendanceReport()"><option value="">— جميع المجموعات —</option></select>
+            </div>
+            <div style="flex:1;min-width:140px">
+              <label style="font-size:11px;font-weight:700;color:var(--muted2);display:block;margin-bottom:6px">التاريخ</label>
+              <input type="date" class="f-ctrl-n f-ctrl" id="att-date-filter" onchange="loadAttendanceReport()">
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="exportAttXLSX()"><i class="fa-solid fa-file-excel"></i> Excel</button>
+            <button class="btn btn-ghost btn-sm" onclick="exportAttPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);border-radius:12px;padding:16px 24px;text-align:center;flex:1;min-width:100px">
+            <div style="font-size:28px;font-weight:900;color:var(--teal3)" id="rep-present">0</div>
+            <div style="font-size:11px;color:var(--muted2)">حاضر</div>
+          </div>
+          <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:16px 24px;text-align:center;flex:1;min-width:100px">
+            <div style="font-size:28px;font-weight:900;color:var(--red2)" id="rep-absent">0</div>
+            <div style="font-size:11px;color:var(--muted2)">غائب</div>
+          </div>
+          <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:16px 24px;text-align:center;flex:1;min-width:100px">
+            <div style="font-size:28px;font-weight:900;color:#93c5fd" id="rep-pct">—</div>
+            <div style="font-size:11px;color:var(--muted2)">نسبة الحضور</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-table"></i> تفاصيل الحضور</div>
+          <div class="table-wrap">
+            <table><thead><tr><th>الكود</th><th>الاسم</th><th>المجموعة</th><th>الحالة</th><th>الرصيد</th><th>متابعة</th></tr></thead>
+            <tbody id="att-report-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- STUDENTS -->
+      <div class="view" id="view-students">
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-graduation-cap"></i> جميع الطلاب</div>
+          <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+            <input class="f-ctrl-n f-ctrl" id="st-search" placeholder="🔍 بحث..." oninput="renderAllStudents()" style="max-width:260px">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>الكود</th><th>الاسم</th><th>المجموعة</th><th>الرصيد</th><th>رقم ولي الأمر</th></tr></thead>
+              <tbody id="all-students-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> رصيد منخفض</div>
+            <div class="table-wrap">
+              <table><thead><tr><th>الاسم</th><th>الرصيد</th><th>المجموعة</th><th>واتساب</th></tr></thead>
+              <tbody id="low-bal-tbody"></tbody></table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="fa-solid fa-trophy"></i> أعلى رصيد</div>
+            <div class="table-wrap">
+              <table><thead><tr><th>الطالب</th><th>المجموعة</th><th>الرصيد</th></tr></thead>
+              <tbody id="top-students-tbody"></tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
+    <div class="footer">Brothers Studio OS — لوحة المعلم &nbsp;|&nbsp; جميع الحقوق محفوظة</div>
   </div>
-
-  <!-- VIEW: HISTORY -->
-  <div class="app-content" id="view-history" style="display:none">
-    <div class="card">
-      <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> سجل دخولي</div>
-      <div id="my-logs" style="display:flex;flex-direction:column;gap:8px">
-        <p style="text-align:center;color:var(--muted);font-size:13px">جاري التحميل...</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- BOTTOM TAB -->
-  <nav class="bottom-tab">
-    <div class="tab-item active" id="tab-scan" onclick="switchTab('scan')"><i class="fa-solid fa-qrcode"></i>مسح</div>
-    <div class="tab-item" id="tab-history" onclick="switchTab('history')"><i class="fa-solid fa-clock-rotate-left"></i>السجل</div>
-    <div class="tab-item" onclick="doLogout()" style="color:var(--red)"><i class="fa-solid fa-power-off"></i>خروج</div>
-  </nav>
-
 </div>
-
-<!-- CAMERA -->
-<div class="camera-overlay" id="camera-overlay">
-  <div class="camera-frame">
-    <video id="camera-video" autoplay playsinline muted></video>
-    <div class="scan-line"></div>
-  </div>
-  <div class="cam-status" id="cam-status">جاري تشغيل الكاميرا...</div>
-  <button class="btn btn-danger" style="max-width:200px;margin-top:16px" onclick="closeCamera()"><i class="fa-solid fa-times"></i> إلغاء</button>
 </div>
 
 <script>
@@ -266,264 +351,371 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-let currentAssistant=null,currentAssistantKey=null;
-let students={},groups={};
-let cameraStream=null,codeReader=null;
-let sessionLog=[];
+let students={},groups={},centers={},assistants={},assistantLogs={},currentPeriod='today';
+let professorName='الأستاذة',waTemplate='';
 
 window.onload=()=>{
-  const saved=sessionStorage.getItem('assist_auth');
-  if(saved){
-    const data=JSON.parse(saved);
-    currentAssistant=data.assistant;
-    currentAssistantKey=data.key;
-    startApp();
-  }
+  document.getElementById('att-date-filter').value=new Date().toISOString().slice(0,10);
+  if(sessionStorage.getItem('teacher_auth')==='ok') startApp();
+  setInterval(()=>{const el=document.getElementById('live-date');if(el)el.innerText=new Date().toLocaleString('ar-EG');},1000);
 };
 
 function doLogin(){
-  const code=document.getElementById('login-pass').value.trim();
-  if(!code){showErr('أدخل الكود أولاً');return;}
-  db.ref('app_configurations/assistants').once('value',snap=>{
-    const assistants=snap.val()||{};
-    let found=null,foundKey=null;
-    Object.entries(assistants).forEach(([k,a])=>{
-      if(String(a.code)===String(code)){found=a;foundKey=k;}
-    });
-    if(found){
-      currentAssistant=found;currentAssistantKey=foundKey;
-      sessionStorage.setItem('assist_auth',JSON.stringify({assistant:found,key:foundKey}));
-      // Log login
-      logAssistant('login');
+  const pass=document.getElementById('login-pass').value;
+  db.ref('app_configurations/passwords/teacher').once('value').then(snap=>{
+    const dbPass=snap.val()||'1111';
+    if(pass===dbPass){
+      sessionStorage.setItem('teacher_auth','ok');
       startApp();
     } else {
-      showErr('❌ الكود غير صحيح — تحقق من كودك وأعد المحاولة');
+      const err=document.getElementById('login-error');
+      err.style.display='block';err.innerText='❌ كلمة المرور غير صحيحة';
       document.getElementById('login-pass').value='';
     }
   });
 }
 
-function showErr(msg){
-  const el=document.getElementById('login-error');
-  el.style.display='block';el.innerText=msg;
-  setTimeout(()=>el.style.display='none',3000);
-}
-
 function doLogout(){
-  if(!confirm('تأكيد تسجيل الخروج؟'))return;
-  logAssistant('logout');
-  sessionStorage.removeItem('assist_auth');
+  sessionStorage.removeItem('teacher_auth');
   document.getElementById('app-shell').style.display='none';
   document.getElementById('login-view').style.display='flex';
   document.getElementById('login-pass').value='';
-  currentAssistant=null;currentAssistantKey=null;sessionLog=[];
 }
 
 function startApp(){
   document.getElementById('login-view').style.display='none';
   document.getElementById('app-shell').style.display='block';
-  document.getElementById('header-user-name').innerText=currentAssistant.name;
-  loadData();
+  syncAll();
 }
 
-function loadData(){
-  db.ref('students_directory').on('value',snap=>students=snap.val()||{});
-  db.ref('app_configurations/groups').on('value',snap=>groups=snap.val()||{});
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.getElementById('nav-'+v).classList.add('active');
+  const titles={overview:'نظرة عامة',assistants:'أداء المساعدين',attendance:'تقارير الحضور',students:'بيانات الطلاب'};
+  const icons={overview:'fa-gauge',assistants:'fa-users-gear',attendance:'fa-calendar-check',students:'fa-graduation-cap'};
+  document.getElementById('page-title').innerText=titles[v]||v;
+  document.getElementById('t-icon').className='fa-solid '+icons[v];
+  if(v==='attendance') loadAttendanceReport();
 }
 
-function logAssistant(action){
-  const now=new Date();
-  db.ref(`assistant_logs/${currentAssistantKey}`).push({
-    action,name:currentAssistant.name,
-    date:now.toLocaleDateString('ar-EG'),
-    time:now.toISOString(),
-    timestamp:now.toLocaleString('ar-EG')
+function syncAll(){
+  db.ref('app_configurations/professor_identity').on('value',snap=>{
+    professorName=snap.val()||'الأستاذة';
+    document.getElementById('sb-prof-name').innerText=professorName;
   });
+  db.ref('app_configurations/wa_message').on('value',snap=>{
+    waTemplate=snap.val()||'';
+  });
+  db.ref('app_configurations/centers').on('value',snap=>{ centers=snap.val()||{}; });
+  db.ref('app_configurations/groups').on('value',snap=>{
+    groups=snap.val()||{};
+    buildGroupFilter();
+  });
+  db.ref('app_configurations/assistants').on('value',snap=>{
+    assistants=snap.val()||{};
+    document.getElementById('ov-assistants').innerText=Object.keys(assistants).length;
+  });
+  db.ref('students_directory').on('value',snap=>{
+    students=snap.val()||{};
+    const tot=Object.keys(students).length;
+    const low=Object.values(students).filter(s=>parseInt(s.wallet_balance)<=2).length;
+    document.getElementById('ov-students').innerText=tot;
+    document.getElementById('ov-low').innerText=low;
+    renderAllStudents();renderLowBalance();renderTopStudents();loadTodayOverview();
+  });
+  db.ref('assistant_logs').on('value',snap=>{
+    assistantLogs=snap.val()||{};
+    renderAssistantPerformance();renderAssistLogTable();renderOverviewAssistSummary();
+  });
+  loadWeeklyChart();
 }
 
-function switchTab(tab){
-  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+tab)?.classList.add('active');
-  document.getElementById('view-scan').style.display=tab==='scan'?'flex':'none';
-  document.getElementById('view-history').style.display=tab==='history'?'flex':'none';
-  if(tab==='history') loadMyHistory();
+function buildGroupFilter(){
+  const sel=document.getElementById('att-group-filter');
+  sel.innerHTML='<option value="">— جميع المجموعات —</option>';
+  Object.entries(groups).forEach(([k,v])=>sel.innerHTML+=`<option value="${k}">${v.title}</option>`);
 }
 
-// ===== ATTENDANCE =====
-function processAttendance(code){
-  const uid=code.trim();
-  const student=students[uid];
-  const rc=document.getElementById('result-card');
-  const rIcon=document.getElementById('result-icon');
-  const rTitle=document.getElementById('result-title');
-  const rSub=document.getElementById('result-subtitle');
-  const rDet=document.getElementById('result-details');
-
-  rc.style.display='block';
-  if(!student){
-    rc.className='result-card error';
-    rIcon.innerText='❌';
-    rTitle.innerText='طالب غير موجود!';
-    rSub.innerText=`الكود "${uid}" غير مسجل في النظام`;
-    rDet.innerHTML='';
-    vibrate([100,50,100]);
-    return;
-  }
-
+function loadTodayOverview(){
   const today=new Date().toISOString().slice(0,10);
-  const gid=student.group_reference;
-  db.ref(`attendance_ledger/${gid}/${today}/${uid}`).once('value',snap=>{
-    if(snap.exists()){
-      rc.className='result-card already';
-      rIcon.innerText='⚠️';
-      rTitle.innerText='تم التسجيل مسبقًا';
-      rSub.innerText=`${student.name} مسجل حضوره بالفعل اليوم`;
-      rDet.innerHTML=`<div class="student-info-row">
-        <div><div class="student-info-label">وقت التسجيل</div><div class="student-info-val">${snap.val().timestamp||'—'}</div></div>
-      </div>`;
-      vibrate([200]);
-      addToLog(student.name,uid,'already');
-    } else {
-      const now=new Date();
-      const ts=now.toLocaleTimeString('ar-EG');
-      db.ref(`attendance_ledger/${gid}/${today}/${uid}`).set({
-        timestamp:ts,
-        recorded_by:currentAssistant.name,
-        date:today
-      }).then(()=>{
-        rc.className='result-card success';
-        rIcon.innerText='✅';
-        rTitle.innerText='تم تسجيل الحضور!';
-        rSub.innerText='تم بنجاح';
-        const g=groups[gid]?.title||'—';
-        rDet.innerHTML=`<div class="student-info-row">
-          <div><div class="student-info-label">الطالب</div><div class="student-info-val" style="color:var(--green2)">${student.name}</div></div>
-          <div style="text-align:left"><div class="student-info-label">الكود</div><div class="student-info-val">${uid}</div></div>
+  let present=0;
+  const promises=Object.keys(groups).map(gid=>
+    db.ref(`attendance_ledger/${gid}/${today}`).once('value').then(snap=>{present+=Object.keys(snap.val()||{}).length;})
+  );
+  Promise.all(promises).then(()=>document.getElementById('ov-present').innerText=present);
+}
+
+function filterPeriod(p,btn){
+  currentPeriod=p;
+  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAssistantPerformance();
+}
+
+function renderAssistantPerformance(){
+  const el=document.getElementById('assistants-performance');
+  if(!el)return;el.innerHTML='';
+  const today=new Date().toISOString().slice(0,10);
+  const now=new Date();
+  const weekAgo=new Date(now-7*864e5).toISOString().slice(0,10);
+  const monthAgo=new Date(now-30*864e5).toISOString().slice(0,10);
+  Object.entries(assistants).forEach(([k,a])=>{
+    const logs=assistantLogs[k]||{};
+    const all=Object.values(logs);
+    let filtered=all;
+    if(currentPeriod==='today') filtered=all.filter(l=>(l.time||'').startsWith(today));
+    else if(currentPeriod==='week') filtered=all.filter(l=>(l.time||'')>=weekAgo);
+    else if(currentPeriod==='month') filtered=all.filter(l=>(l.time||'')>=monthAgo);
+    const loginCount=filtered.filter(l=>l.action==='login').length;
+    const totalLogins=all.filter(l=>l.action==='login').length;
+    const loginTimes=all.filter(l=>l.action==='login'&&(l.time||'').startsWith(today)).map(l=>new Date(l.time));
+    const logoutTimes=all.filter(l=>l.action==='logout'&&(l.time||'').startsWith(today)).map(l=>new Date(l.time));
+    let workMins=0;
+    for(let i=0;i<Math.min(loginTimes.length,logoutTimes.length);i++){
+      const diff=(logoutTimes[i]-loginTimes[i])/60000;
+      if(diff>0&&diff<600) workMins+=diff;
+    }
+    el.innerHTML+=`<div class="assist-card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#0d9488,#0f766e);display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid rgba(13,148,136,0.3)">👤</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:800">${a.name}</div>
+          <div style="font-size:11px;color:var(--muted2)">كود: ${a.code}</div>
         </div>
-        <div class="student-info-row">
-          <div><div class="student-info-label">المجموعة</div><div class="student-info-val">${g}</div></div>
-          <div style="text-align:left"><div class="student-info-label">الوقت</div><div class="student-info-val">${ts}</div></div>
-        </div>`;
-        vibrate([50,20,50,20,100]);
-        addToLog(student.name,uid,'success');
-        // Deduct wallet
-        const newBal=Math.max(0,parseInt(student.wallet_balance||0)-1);
-        db.ref(`students_directory/${uid}/wallet_balance`).set(newBal);
-      });
-    }
-  });
-}
-
-function addToLog(name,uid,type){
-  const now=new Date().toLocaleTimeString('ar-EG');
-  sessionLog.unshift({name,uid,type,time:now});
-  document.getElementById('session-count').innerText=sessionLog.filter(l=>l.type==='success').length;
-  const el=document.getElementById('session-log');
-  el.innerHTML=sessionLog.slice(0,20).map(l=>`
-    <div class="log-item">
-      <div class="log-dot ${l.type==='success'?'success':l.type==='already'?'already':'err'}"></div>
-      <div class="log-info">
-        <div class="log-name">${l.name} <span style="font-size:10px;color:var(--muted)">(${l.uid})</span></div>
-        <div class="log-time">${l.time} — ${l.type==='success'?'✅ تم التسجيل':l.type==='already'?'⚠️ مسجل مسبقًا':'❌ غير موجود'}</div>
+        <span class="badge ${loginCount>0?'badge-teal':'badge-gray'}">${loginCount>0?'نشط':'غير نشط'}</span>
       </div>
-    </div>`).join('');
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:22px;font-weight:900;color:var(--teal3)">${loginCount}</div>
+          <div style="font-size:10px;color:var(--muted2)">دخولات</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:22px;font-weight:900;color:#fbbf24">${(workMins/60).toFixed(1)}</div>
+          <div style="font-size:10px;color:var(--muted2)">ساعات اليوم</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:22px;font-weight:900;color:var(--green2)">${totalLogins}</div>
+          <div style="font-size:10px;color:var(--muted2)">إجمالي</div>
+        </div>
+      </div>
+      <div style="margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted2);margin-bottom:4px"><span>معدل النشاط</span><span>${Math.min(100,totalLogins*10)}%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${Math.min(100,totalLogins*10)}%"></div></div>
+      </div>
+    </div>`;
+  });
+  if(!Object.keys(assistants).length) el.innerHTML='<p style="text-align:center;color:var(--muted);font-size:13px;grid-column:1/-1">لا يوجد مساعدون</p>';
 }
 
-function manualAttend(){
-  const code=document.getElementById('manual-code').value.trim();
-  if(!code)return;
-  document.getElementById('manual-code').value='';
-  processAttendance(code);
+function renderAssistLogTable(){
+  const tbody=document.getElementById('assist-log-tbody');
+  if(!tbody)return;tbody.innerHTML='';
+  const all=[];
+  Object.entries(assistantLogs).forEach(([k,logs])=>{
+    const name=assistants[k]?.name||'—';
+    Object.values(logs).forEach(l=>all.push({name,...l}));
+  });
+  all.sort((a,b)=>(b.time||'').localeCompare(a.time||'')).slice(0,50).forEach(l=>{
+    const t=l.time?new Date(l.time):'';
+    tbody.innerHTML+=`<tr>
+      <td><b>${l.name}</b></td>
+      <td><span class="badge ${l.action==='login'?'badge-teal':'badge-red'}">${l.action==='login'?'دخول':'خروج'}</span></td>
+      <td>${t?t.toLocaleDateString('ar-EG'):'—'}</td>
+      <td>${t?t.toLocaleTimeString('ar-EG'):'—'}</td>
+    </tr>`;
+  });
+  if(!all.length) tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted)">لا توجد سجلات</td></tr>';
 }
 
-// ===== CAMERA =====
-function openCamera(){
-  document.getElementById('camera-overlay').classList.add('open');
-  document.getElementById('cam-status').innerText='جاري تشغيل الكاميرا...';
+function renderOverviewAssistSummary(){
+  const el=document.getElementById('overview-assist-summary');
+  if(!el)return;el.innerHTML='';
+  const today=new Date().toISOString().slice(0,10);
+  Object.entries(assistants).forEach(([k,a])=>{
+    const logs=Object.values(assistantLogs[k]||{}).filter(l=>(l.time||'').startsWith(today));
+    const active=logs.some(l=>l.action==='login');
+    const sessions=logs.filter(l=>l.action==='login').length;
+    el.innerHTML+=`<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.15);border-radius:10px">
+      <div style="width:8px;height:8px;border-radius:50%;background:${active?'var(--green)':'var(--muted)'};flex-shrink:0"></div>
+      <span style="font-size:13px;font-weight:700;flex:1">${a.name}</span>
+      <span class="badge ${active?'badge-teal':'badge-gray'}">${active?sessions+' دخول اليوم':'غير نشط'}</span>
+    </div>`;
+  });
+  if(!Object.keys(assistants).length) el.innerHTML='<p style="text-align:center;color:var(--muted);font-size:13px">لا يوجد مساعدون</p>';
+}
 
-  if(window.ZXing){
-    startZXing();
-  } else {
-    startBarcodeDetector();
+function loadWeeklyChart(){
+  const labels=[],dates=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    dates.push(d.toISOString().slice(0,10));
+    labels.push(d.toLocaleDateString('ar-EG',{weekday:'short'}));
   }
-}
-
-async function startBarcodeDetector(){
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-    cameraStream=stream;
-    const video=document.getElementById('camera-video');
-    video.srcObject=stream;await video.play();
-    if('BarcodeDetector' in window){
-      document.getElementById('cam-status').innerText='وجّه الكاميرا نحو الباركود...';
-      const detector=new BarcodeDetector({formats:['qr_code','ean_13','code_128','code_39','upc_a']});
-      const loop=setInterval(async()=>{
-        if(!cameraStream){clearInterval(loop);return;}
-        try{
-          const codes=await detector.detect(video);
-          if(codes.length>0){
-            clearInterval(loop);closeCamera();
-            processAttendance(codes[0].rawValue);
-          }
-        }catch(e){}
-      },300);
-    } else {
-      document.getElementById('cam-status').innerText='الكاميرا تعمل — استخدم قارئ خارجي أو الإدخال اليدوي';
-    }
-  }catch(err){
-    document.getElementById('cam-status').innerText='❌ لا يمكن الوصول للكاميرا — تأكد من منح الإذن';
-  }
-}
-
-function startZXing(){
-  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(stream=>{
-    cameraStream=stream;
-    const video=document.getElementById('camera-video');
-    video.srcObject=stream;video.play();
-    codeReader=new ZXing.BrowserMultiFormatReader();
-    document.getElementById('cam-status').innerText='وجّه الكاميرا نحو الباركود...';
-    codeReader.decodeFromStream(stream,video,(result,err)=>{
-      if(result){closeCamera();processAttendance(result.getText());}
+  document.getElementById('weekly-labels').innerHTML=labels.map(l=>`<span>${l}</span>`).join('');
+  Promise.all(Object.keys(groups).map(gid=>
+    Promise.all(dates.map(date=>db.ref(`attendance_ledger/${gid}/${date}`).once('value').then(snap=>Object.keys(snap.val()||{}).length)))
+  )).then(results=>{
+    const totals=dates.map((_,i)=>results.reduce((s,arr)=>s+(arr[i]||0),0));
+    const max=Math.max(...totals,1);
+    const chart=document.getElementById('weekly-chart');
+    const vals=document.getElementById('weekly-vals');
+    chart.innerHTML='';vals.innerHTML='';
+    totals.forEach(v=>{
+      const pct=Math.max(8,Math.round((v/max)*100));
+      chart.innerHTML+=`<div class="mini-bar" style="height:${pct}%"></div>`;
+      vals.innerHTML+=`<span>${v}</span>`;
     });
-  }).catch(()=>{
-    document.getElementById('cam-status').innerText='❌ تعذر الوصول للكاميرا';
   });
 }
 
-function closeCamera(){
-  if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
-  if(codeReader){try{codeReader.reset();}catch(e){}codeReader=null;}
-  document.getElementById('camera-video').srcObject=null;
-  document.getElementById('camera-overlay').classList.remove('open');
-}
-
-// ===== HISTORY =====
-function loadMyHistory(){
-  const el=document.getElementById('my-logs');
-  el.innerHTML='<p style="text-align:center;color:var(--muted);font-size:13px">جاري التحميل...</p>';
-  db.ref(`assistant_logs/${currentAssistantKey}`).limitToLast(30).once('value',snap=>{
-    if(!snap.exists()){el.innerHTML='<p style="text-align:center;color:var(--muted);font-size:13px">لا توجد سجلات</p>';return;}
-    const items=[];snap.forEach(c=>items.unshift(c.val()));
-    el.innerHTML=items.map(l=>`<div class="log-item">
-      <div class="log-dot ${l.action==='login'?'success':'err'}"></div>
-      <div class="log-info">
-        <div class="log-name">${l.action==='login'?'🔓 دخول':'🔒 خروج'}</div>
-        <div class="log-time">${l.timestamp||'—'}</div>
-      </div>
-    </div>`).join('');
+function loadAttendanceReport(){
+  const gid=document.getElementById('att-group-filter').value;
+  const date=document.getElementById('att-date-filter').value||new Date().toISOString().slice(0,10);
+  const tbody=document.getElementById('att-report-tbody');
+  if(!tbody)return;
+  tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted)">جاري التحميل...</td></tr>';
+  const targetGroups=gid?[gid]:Object.keys(groups);
+  let pres=0,abs=0;tbody.innerHTML='';
+  Promise.all(targetGroups.map(gidT=>
+    db.ref(`attendance_ledger/${gidT}/${date}`).once('value').then(snap=>{
+      const att=snap.val()||{};
+      Object.values(students).filter(s=>s.group_reference===gidT).forEach(s=>{
+        const g=groups[gidT]?.title||'—';
+        if(att[s.uid]){
+          pres++;
+          tbody.innerHTML+=`<tr><td>${s.uid}</td><td>${s.name}</td><td>${g}</td>
+            <td><span class="badge badge-green">✅ حاضر (${att[s.uid].timestamp})</span></td>
+            <td>${s.wallet_balance} حصة</td><td>—</td></tr>`;
+        } else {
+          abs++;
+          const msg=buildWAMsg(s,date);
+          tbody.innerHTML+=`<tr><td>${s.uid}</td><td>${s.name}</td><td>${g}</td>
+            <td><span class="badge badge-red">❌ غائب</span></td>
+            <td>${s.wallet_balance} حصة</td>
+            <td><a class="wa-btn" href="https://wa.me/${(s.parent_phone||'').replace(/\D/g,'')}?text=${encodeURIComponent(msg)}" target="_blank"><i class="fa-brands fa-whatsapp"></i> متابعة</a></td></tr>`;
+        }
+      });
+    })
+  )).then(()=>{
+    document.getElementById('rep-present').innerText=pres;
+    document.getElementById('rep-absent').innerText=abs;
+    const tot=pres+abs;
+    document.getElementById('rep-pct').innerText=tot>0?Math.round((pres/tot)*100)+'%':'—';
+    if(!tbody.innerHTML) tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted)">لا توجد بيانات لهذا اليوم</td></tr>';
   });
 }
 
-// ===== UTILS =====
-function vibrate(pattern){
-  if(navigator.vibrate) navigator.vibrate(pattern);
+function buildWAMsg(s,date=''){
+  const d=date||new Date().toLocaleDateString('ar-EG');
+  let tpl=waTemplate||'مرحبًا ولي أمر {student_name}،\nنود إعلامكم بغياب ابنكم/ابنتكم عن حصة اليوم بتاريخ {date}.\nيرجى المتابعة والتواصل معنا.\n— {teacher_name}';
+  return tpl.replace(/{student_name}/g,s.name).replace(/{date}/g,d).replace(/{teacher_name}/g,professorName);
 }
 
-// Close camera on escape
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCamera();});
-window.addEventListener('click',e=>{
-  if(e.target.id==='camera-overlay') closeCamera();
-});
+function renderAllStudents(){
+  const tbody=document.getElementById('all-students-tbody');
+  if(!tbody)return;tbody.innerHTML='';
+  const q=(document.getElementById('st-search')?.value||'').trim().toLowerCase();
+  let list=Object.values(students);
+  if(q) list=list.filter(s=>(s.name||'').toLowerCase().includes(q)||(s.uid||'').includes(q));
+  list.forEach(s=>{
+    const g=groups[s.group_reference]?.title||'—';
+    tbody.innerHTML+=`<tr>
+      <td><b>${s.uid}</b></td><td>${s.name}</td><td>${g}</td>
+      <td><span class="badge ${parseInt(s.wallet_balance)<=2?'badge-red':'badge-teal'}">${s.wallet_balance} حصة</span></td>
+      <td>${s.parent_phone||'—'}</td>
+    </tr>`;
+  });
+}
+
+function renderLowBalance(){
+  const tbody=document.getElementById('low-bal-tbody');
+  if(!tbody)return;tbody.innerHTML='';
+  const low=Object.values(students).filter(s=>parseInt(s.wallet_balance)<=2);
+  if(!low.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted)">ممتاز — لا يوجد رصيد منخفض</td></tr>';return;}
+  low.sort((a,b)=>(a.wallet_balance||0)-(b.wallet_balance||0)).forEach(s=>{
+    const g=groups[s.group_reference]?.title||'—';
+    const msg=buildWAMsg(s);
+    tbody.innerHTML+=`<tr>
+      <td>${s.name}</td><td><span class="badge badge-red">${s.wallet_balance}</span></td><td>${g}</td>
+      <td><a class="wa-btn" href="https://wa.me/${(s.parent_phone||'').replace(/\D/g,'')}?text=${encodeURIComponent(msg)}" target="_blank"><i class="fa-brands fa-whatsapp"></i></a></td>
+    </tr>`;
+  });
+}
+
+function renderTopStudents(){
+  const tbody=document.getElementById('top-students-tbody');
+  if(!tbody)return;tbody.innerHTML='';
+  Object.values(students).sort((a,b)=>parseInt(b.wallet_balance)-parseInt(a.wallet_balance)).slice(0,10).forEach((s,i)=>{
+    const g=groups[s.group_reference]?.title||'—';
+    tbody.innerHTML+=`<tr>
+      <td>${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)} ${s.name}</td>
+      <td>${g}</td>
+      <td><span class="badge badge-teal">${s.wallet_balance}</span></td>
+    </tr>`;
+  });
+}
+
+function exportAttXLSX(){
+  const gid=document.getElementById('att-group-filter').value;
+  const date=document.getElementById('att-date-filter').value||new Date().toISOString().slice(0,10);
+  db.ref(gid?`attendance_ledger/${gid}/${date}`:`attendance_ledger`).once('value',snap=>{
+    const att=gid?(snap.val()||{}):{};
+    const data=[['الكود','الاسم','المجموعة','الحالة','وقت الحضور','الرصيد']];
+    const targetGroups=gid?[gid]:Object.keys(groups);
+    targetGroups.forEach(gidT=>{
+      Object.values(students).filter(s=>s.group_reference===gidT).forEach(s=>{
+        const present=att[s.uid];
+        data.push([s.uid,s.name,groups[gidT]?.title||'—',present?'حاضر':'غائب',present?.timestamp||'—',s.wallet_balance]);
+      });
+    });
+    const ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=[{wch:8},{wch:20},{wch:14},{wch:8},{wch:14},{wch:8}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'الحضور');
+    XLSX.writeFile(wb,`حضور_${date}.xlsx`);
+  });
+}
+
+function exportAttPDF(){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'l',unit:'mm',format:'a4'});
+  doc.setFontSize(16);doc.setTextColor(13,148,136);
+  doc.text('Brothers Studio - Attendance Report',148,15,{align:'center'});
+  const date=document.getElementById('att-date-filter').value||new Date().toISOString().slice(0,10);
+  doc.setFontSize(10);doc.setTextColor(100,100,100);
+  doc.text(`Date: ${date}   Teacher: ${professorName}`,148,22,{align:'center'});
+  let y=32;
+  doc.setFillColor(13,148,136);doc.rect(10,y-5,277,8,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(9);
+  ['ID','Name','Group','Status','Time','Balance'].forEach((h,i)=>{
+    doc.text(h,[12,25,80,130,165,200][i],y);
+  });
+  y+=8;doc.setTextColor(30,30,30);
+  const gid=document.getElementById('att-group-filter').value;
+  const targetGroups=gid?[gid]:Object.keys(groups);
+  const promises=targetGroups.map(gidT=>db.ref(`attendance_ledger/${gidT}/${date}`).once('value').then(snap=>({gidT,att:snap.val()||{}})));
+  Promise.all(promises).then(results=>{
+    results.forEach(({gidT,att})=>{
+      Object.values(students).filter(s=>s.group_reference===gidT).forEach((s,idx)=>{
+        if(y>185){doc.addPage();y=20;}
+        if(idx%2===0){doc.setFillColor(240,248,246);doc.rect(10,y-5,277,7,'F');}
+        const present=att[s.uid];
+        doc.setTextColor(30,30,30);
+        doc.text(String(s.uid),12,y);doc.text(s.name,25,y);
+        doc.text(groups[gidT]?.title||'—',80,y);
+        present?doc.setTextColor(16,185,129):doc.setTextColor(239,68,68);
+        doc.text(present?'Present':'Absent',130,y);
+        doc.setTextColor(30,30,30);
+        doc.text(present?.timestamp||'—',165,y);
+        doc.text(String(s.wallet_balance||0),200,y);
+        y+=7;
+      });
+    });
+    doc.save(`Attendance_${date}.pdf`);
+  });
+}
 </script>
 </body>
 </html>
